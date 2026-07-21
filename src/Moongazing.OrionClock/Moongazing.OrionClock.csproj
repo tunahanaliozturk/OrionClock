@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>OrionClock</PackageId>
+    <Description>A TimeProvider-based clock for the Orion family: it IS a TimeProvider (drops into any BCL API that takes one) and IS the Orion IOrionClock, and adds the schedule/TTL vocabulary every backend keeps re-deriving - Ttl and Deadline value types with capture-at-issue semantics and deadline-driven cancellation. Deterministic under test through a controllable fake. AOT- and trim-clean.</Description>
+    <PackageTags>orion;time;clock;timeprovider;ttl;deadline;testable;dotnet</PackageTags>
+    <RootNamespace>Moongazing.OrionClock</RootNamespace>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Orion.Abstractions" Version="1.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Moongazing.OrionClock.Testing" />
+    <InternalsVisibleTo Include="Moongazing.OrionClock.Tests" />
+  </ItemGroup>
+</Project>
