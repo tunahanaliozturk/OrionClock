@@ -28,11 +28,11 @@ OrionClock is the thin, opinionated layer on top. It **is** a `TimeProvider` (so
 ## Features
 
 - **It is a `TimeProvider`** — anything that accepts a `TimeProvider` (`CancellationTokenSource`, `Task.Delay`, timers) accepts an `OrionClock`. Subclasses the BCL primitive rather than replacing it.
-- **It is the family's `IOrionClock`** — one clock, registered as `TimeProvider` *and* `IOrionClock`, so every Orion package reads the same time source.
+- **It is the family's `IOrionClock`** — one clock, registered as `TimeProvider` *and* `IOrionClock`, so every Orion package reads the same time source (unless you registered your own `TimeProvider` or `IOrionClock` first; see One-line DI below).
 - **`Ttl`** — a time-to-live as a first-class value (issue instant + expiry captured together). `IsExpired`, `Remaining` (clamped non-negative), `ToCancellationTokenSource` for TTL-driven cancellation.
 - **`Deadline`** — a "must complete by" instant with `IsPast`, `TimeRemaining`, and deadline-driven cancellation.
 - **Deterministic in tests** — `FakeOrionClock` (in `OrionClock.Testing`) freezes time and only moves on `Advance`/`SetUtcNow`. Because it is built on `TimeProvider`, advancing it fires the timers and cancellation sources created through it — so a 5-minute TTL is expired after `Advance(6m)` and *not* after `Advance(4m)`, with no real delay.
-- **One-line DI** (`AddOrionClock`) — registers via `TryAdd`, so a consumer override wins and calling it twice is a no-op.
+- **One-line DI** (`AddOrionClock`) — registers via `TryAdd`, so a consumer override wins and calling it twice is a no-op. Each service type is a separate `TryAdd`: if you registered only one of `OrionClock`, `TimeProvider` or `IOrionClock` yourself, that one keeps your registration and the other two still resolve to the `OrionClock`, so they no longer share one instance. To swap the time source for all three, set `OrionClockOptions.TimeProvider` (see [Testing](#testing)).
 - **AOT- and trim-clean**, verified by a native-binary smoke test in CI. Multi-targets `net8.0`, `net9.0`, `net10.0`.
 
 ## Install
@@ -43,6 +43,8 @@ dotnet add package OrionClock
 # Testing companion (FakeOrionClock), reference from test projects only
 dotnet add package OrionClock.Testing
 ```
+
+OrionClock depends only on `Microsoft.Extensions.DependencyInjection.Abstractions`. The quick start below builds its own container with `BuildServiceProvider()`, so a console app or test project also needs `dotnet add package Microsoft.Extensions.DependencyInjection`. ASP.NET Core and Generic Host apps already reference it.
 
 ## Quick start
 
