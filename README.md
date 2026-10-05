@@ -1,15 +1,29 @@
 <p align="center">
-  <img src="docs/logo.png" alt="OrionClock" width="150" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/logo.png">
+    <img src="docs/icon.png" alt="OrionClock logo" width="150">
+  </picture>
 </p>
 
 # OrionClock
 
 [![CI/CD](https://github.com/tunahanaliozturk/OrionClock/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/tunahanaliozturk/OrionClock/actions/workflows/ci-cd.yml)
 [![NuGet](https://img.shields.io/nuget/v/OrionClock.svg)](https://www.nuget.org/packages/OrionClock/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
+![.NET](https://img.shields.io/badge/.NET-8.0%20%7C%209.0%20%7C%2010.0-purple.svg)
 
 A `TimeProvider`-based clock for the **Orion** family. Time is the most-faked and worst-faked dependency in a .NET backend: teams reach for `DateTime.UtcNow`, sprinkle it through domain code, then discover none of it is testable. .NET 8 shipped `TimeProvider` — the right primitive — but it deliberately left out a schedule/TTL vocabulary, so every package re-derives its own expiry math and flaky "wait for it to expire" tests.
 
 OrionClock is the thin, opinionated layer on top. It **is** a `TimeProvider` (so it drops into any BCL API that takes one), it **is** the family's `IOrionClock`, and it adds the `Ttl`/`Deadline` vocabulary the whole suite shares — deterministic under a fake clock that advances the entire suite at once.
+
+![OrionClock packages: the app registers OrionClock with AddOrionClock; it implements IOrionClock and delegates to TimeProvider.System or a FakeTimeProvider](docs/diagrams/overview.png)
+
+## Packages
+
+| Package | What it contains |
+|---------|------------------|
+| [`OrionClock`](https://www.nuget.org/packages/OrionClock/) | `OrionClock` (`TimeProvider` + `IOrionClock`), `Ttl`, `Deadline`, `AddOrionClock` |
+| [`OrionClock.Testing`](https://www.nuget.org/packages/OrionClock.Testing/) | `FakeOrionClock`, a controllable clock for tests built on `FakeTimeProvider` |
 
 ## Features
 
@@ -54,6 +68,8 @@ using var cts = deadline.ToCancellationTokenSource((OrionClock)clock);
 await DoWorkAsync(cts.Token);
 ```
 
+![How a TTL is issued, checked and turned into a cancellation token, including the negative-duration and already-expired paths](docs/diagrams/ttl-lifecycle.png)
+
 ## Testing
 
 Point the clock at `FakeOrionClock` and advance time by hand — no real delays, no flakiness.
@@ -81,6 +97,8 @@ services.AddOrionClock(o => o.TimeProvider = fake);
 
 Because `FakeOrionClock` is a `TimeProvider`, a `CancellationTokenSource` built from a `Ttl` or `Deadline` cancels exactly when you advance past it — deterministically.
 
+![A test advances FakeOrionClock by 4 then 2 minutes; the TTL's timer fires at +5 minutes, and moving time backwards throws](docs/diagrams/fake-clock-test.png)
+
 ## Versioning
 
 Follows [Semantic Versioning](https://semver.org/). Multi-targets `net8.0`, `net9.0`, and `net10.0`. Binds to `Orion.Abstractions` 1.x.
@@ -88,6 +106,7 @@ Follows [Semantic Versioning](https://semver.org/). Multi-targets `net8.0`, `net
 ## Documentation
 
 - [CHANGELOG.md](CHANGELOG.md) — release notes.
+- [SECURITY.md](SECURITY.md) — how to report a vulnerability.
 
 ## Contributing
 
