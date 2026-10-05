@@ -8,6 +8,10 @@ A `TimeProvider`-based clock for .NET and the Orion family: one clock that is bo
 
     dotnet add package OrionClock
 
+The package depends only on `Microsoft.Extensions.DependencyInjection.Abstractions`. The quick start builds its own container, so a console app or test project also needs the container package (ASP.NET Core and Generic Host apps already have it):
+
+    dotnet add package Microsoft.Extensions.DependencyInjection
+
 ## Quick start
 
 ```csharp
@@ -32,7 +36,7 @@ using var cts = deadline.ToCancellationTokenSource(clock);
 ## What you get
 
 - `OrionClock` subclasses `TimeProvider`, so it works with any API that takes one (`CancellationTokenSource`, `Task.Delay`, timers). Every read delegates to an inner `TimeProvider`.
-- `AddOrionClock(Action<OrionClockOptions>?)` registers one shared instance as `OrionClock`, `TimeProvider` and `IOrionClock` with `TryAdd`, so an earlier registration wins.
+- `AddOrionClock(Action<OrionClockOptions>?)` registers `OrionClock`, `TimeProvider` and `IOrionClock` with `TryAdd`. With no earlier registrations, all three resolve to one shared instance. Each `TryAdd` is independent, so a service type you registered first keeps your registration while the other two still resolve to the `OrionClock`, and they no longer share one instance. To change the time source for all three together, set `OrionClockOptions.TimeProvider` instead of registering your own `TimeProvider`.
 - `Ttl`: `IssuedAt`, `ExpiresAt`, `Duration`, `IsExpired(clock)`, `Remaining(clock)`, `ToCancellationTokenSource(clock)`.
 - `Deadline`: `At`, `IsPast(clock)`, `TimeRemaining(clock)`, `ToCancellationTokenSource(clock)`.
 
